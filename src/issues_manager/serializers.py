@@ -7,3 +7,20 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ['name', 'description', 'manager', 'contributors']
 
 
+class IssueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Issue
+        fields = '__all__'
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = '__all__'
+
+
+class ContributorsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contributors
+        fields = '__all__'
+
