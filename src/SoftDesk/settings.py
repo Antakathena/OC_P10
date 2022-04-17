@@ -38,9 +38,20 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'users',
-    'issues_manager',
+    'rest_framework_simplejwt',
+    'users',  # app avec custom users au cas où besoin de modifier
+    'issues_manager',  # app principale
+
 ]
+
+REST_FRAMEWORK = {  # ajouté
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 100,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        )
+
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -127,3 +138,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 AUTH_USER_MODEL = 'users.CustomUser'
+
+LOGIN_REDIRECT_URL = ''

@@ -20,7 +20,9 @@ class Issue(models.Model):
     description = models.CharField(max_length=128)
     tag = models.CharField(max_length=128)
     priority = models.CharField(max_length=128)
-    project_id= models.IntegerField()
+    # project_id= models.IntegerField()
+    project_id= models.ForeignKey(
+        to=Project, on_delete=models.CASCADE, related_name = "projet_associe")
     status = models.CharField(max_length=128)
     author_user_id = models.ForeignKey(
         to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name = "auteur") # créateur
