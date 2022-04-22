@@ -1,8 +1,16 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.http import Http404
 
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
 
 from .models import(
     Project,
@@ -16,28 +24,29 @@ from .serializers import (
     CommentSerializer,
     ContributorsSerializer,
 )
-from django.http import Http404
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
-from rest_framework.viewsets import ModelViewSet
-
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
- 
-
+from .permissions import IsAdminAuthenticated
     
 
 # Create your views here.
 
 class ProjectViewSet(ModelViewSet):
+    serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated,] # pour get et post : contributeur du projet, pour delete et put : owner
     # pour passer la vue en lecture seule il suffit de changer l'héritage pour ReadOnlyModelViewset
 
-    serializer_class = ProjectSerializer
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action == 'create':
+            permission_classes = [IsAuthenticated,]
+        # elif self.action == 'list':
+        #     permission_classes = [IsAuthenticated, IsCollaborating]
+        else:
+            permission_classes = [IsAuthenticated, IsAdminAuthenticated] # ici changer IsAdminAuthenticated par IsOwner si défini
+        return [permission() for permission in permission_classes]
 
     def get_queryset(self):
-        permission_classes = [IsAuthenticated] # ?????
         project_id = self.request.GET.get(id)
         if project_id is not None:
             queryset = queryset.filter(project_id = project_id)
@@ -45,10 +54,10 @@ class ProjectViewSet(ModelViewSet):
             queryset = Project.objects.all()
         return queryset
 
-@action(methods=['post'], detail=True, )
 class IssueViewSet(ModelViewSet):
 
     serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated,]
 
     def get_queryset(self):
         issue_id = self.request.GET.get(id)
@@ -63,6 +72,7 @@ class IssueViewSet(ModelViewSet):
 class CommentViewSet(ModelViewSet):
 
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated,]
 
     def get_queryset(self):
         comment_id = self.request.GET.get(id)
@@ -71,26 +81,6 @@ class CommentViewSet(ModelViewSet):
         else:
             queryset = Comment.objects.all()
         return queryset
-
-# class ProjectListView(APIView):
-#     """  
-#     https://www.django-rest-framework.org/tutorial/3-class-based-views/  à lire en entier (mixin, generic...)
-#     List all projects, or create a new project.
-#     """
-
-#     def get(self, *args, **kwargs):
-#         projects = Project.objects.all()
-#         serializer = ProjectSerializer(projects, many=True)
-#         return Response(serializer.data)
-
-#     def post(self, request, format=None):
-#         serializer = ProjectSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-#     pass
 
 @api_view(['GET'])
 def api_overview(request):
