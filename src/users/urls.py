@@ -6,19 +6,20 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from .views import UserView, RegisterUserView, AuthenticateUser, AdminUserViewset
+from .views import UserView, RegisterUserView, AuthenticateUser, AdminUserViewset, GetTokens, RefreshToken
+# from django.conf.urls import url # à étudier
 
 app_name = 'users'  # pour utiliser namespace dans les urls
 
 urlpatterns = [
+    # path('token/', GetTokens.as_view(), name='token_obtain_pair'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # path('token/refresh/', RefreshToken.as_view(), name='token_refresh'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    # url(r'^api-token-auth/', obtain_jwt_token), /non : plus maintenu
-    # va avec : from django.conf.urls import url # à étudier
+    # non plus maintenu : url(r'^api-token-auth/', obtain_jwt_token),
     path('userslist/', UserView.as_view()),
     path('signup/', RegisterUserView.as_view()),
     path('login/', AuthenticateUser.as_view(), name='login'),
-    path('logout/',auth_views.LogoutView.as_view(template_name='users/logout.html'), name='logout'),
 ]
 
 router = DefaultRouter()

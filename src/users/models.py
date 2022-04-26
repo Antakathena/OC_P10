@@ -29,14 +29,13 @@ class CustomUser(AbstractUser, PermissionsMixin):
  
     objects = CustomUserManager()
  
-    # USERNAME_FIELD = 'email' commenté parce que le username se transforme en e-mail à l'enregistrement sinon
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'username']
  
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         return self
-
-    
+   
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}, id:{self.id}"

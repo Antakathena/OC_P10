@@ -49,9 +49,9 @@ INSTALLED_APPS = [
 ]
 
 REST_FRAMEWORK = {  # ajouté
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     # 'rest_framework.permissions.IsAuthenticated',
+    # ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 4,
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -68,10 +68,10 @@ SIMPLE_JWT = {  # tous les default settings, pour apprendre
     # https://www.youtube.com/watch?v=xjMP0hspNLE
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
-    'ROTATE_REFRESH_TOKENS': True, 
+    'ROTATE_REFRESH_TOKENS': False, 
     # False par défaut. True = si on est actif sur le site, active un refresh token
     # pour ne pas avoir à se reconnecter au bout du REFRESH_TOKEN_LIFETIME,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'BLACKLIST_AFTER_ROTATION': False,
     # False par défaut. Mais si on met ROTATE à True, il faut absolument mettre Blacklist à True aussi;
     # sinon pas secure
     'UPDATE_LAST_LOGIN': False,
@@ -89,6 +89,7 @@ SIMPLE_JWT = {  # tous les default settings, pour apprendre
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
     'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+    # testé en remplacement avec Nicolas mais ça ne marche pas : lambda u:True,
 
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
@@ -98,7 +99,7 @@ SIMPLE_JWT = {  # tous les default settings, pour apprendre
 
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=90),
 }
 
 MIDDLEWARE = [

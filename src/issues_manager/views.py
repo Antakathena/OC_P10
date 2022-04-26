@@ -54,20 +54,32 @@ class ProjectViewSet(ModelViewSet):
             queryset = Project.objects.all()
         return queryset
 
+
 class IssueViewSet(ModelViewSet):
 
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated,]
 
+    # exemple avec nested router : def get_queryset(self):
+    # return Issue.objects.filter(project = self.kwargs['project_pk'])
+
+    @action(methods=['get', 'post'], detail=True)
+    # , url_path='project/(?<project_pk>[^/.]+)')
     def get_queryset(self):
         issue_id = self.request.GET.get(id)
+        
         if issue_id is not None:
             queryset = queryset.filter(issue_id = issue_id)
+            issue = self.queryset.get(issue_id = issue_id, project_id = self.kwargs['project_pk'])
+            return issue
         else:
             queryset = Issue.objects.all()
         return queryset
 
         # url('/<project>/<id>/issue/<id>', f)
+
+    # def perform_create(self, serializer):
+    #     serializer.save(owner=self.request.user)
 
 class CommentViewSet(ModelViewSet):
 

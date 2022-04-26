@@ -1,6 +1,7 @@
 from django.shortcuts import render
 
 from django.http import Http404
+from issues_manager import models
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,6 +9,15 @@ from rest_framework.permissions import AllowAny, IsAuthenticated # quoi le derni
 from django.contrib.auth import authenticate
 
 from rest_framework import viewsets
+
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+from rest_framework_simplejwt.exceptions import (
+    InvalidToken,
+    TokenError
+)
 
 
 from .models import CustomUser
@@ -20,7 +30,7 @@ class AdminUserViewset(viewsets.ModelViewSet):
     Elle permet toutes les actions du CRUD sur les users"""
     serializer_class = CustomUserSerializer
     queryset = users = CustomUser.objects.all()
-    permission_classes = (IsAdminAuthenticated, )
+    permission_classes = (IsAuthenticated, ) # quand ok on peut remettre Isadminauthenticated
 
 
 class UserView(APIView):
@@ -63,17 +73,46 @@ class RegisterUserView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class GetTokens(TokenObtainPairView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        print( request.data, args, kwargs)
+        serializer = self.get_serializer(data=request.data)
+        print(serializer)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            print("OK\n\n")
+        except Exception as e:
+            print(e)
+            raise
+        except TokenError as e:
+            print("erreur\n")
+            raise InvalidToken(e.args[0])
+
+class RefreshToken(TokenRefreshView):
+    permission_classes = (AllowAny,)
+
+
 class AuthenticateUser(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
         try:
-            email = request.data.get('email', None) # ou email = request.data['email']
-            password = request.data.get('password', None)
-    
-            user = authenticate(username=email, password=password) 
-            # ou user = CustomUser.objects.get(email=email, password=password)
-            
+            email = request.data.get('email', None) # email = request.data['email'] # 
+            password = request.data.get('password', None) # request.data['password'] 
+
+            try:    
+                # user = authenticate(email=email, password=password) 
+                user = CustomUser.objects.get(email=email, password=password)
+            except models.Model.DoesNotExist as e:
+                print("pas trouvé")
+                print( email,  password)
+                raise e
+            else:
+                print(user)
+
             if user:
 
                 try:
