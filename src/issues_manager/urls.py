@@ -19,6 +19,7 @@ router = routers.SimpleRouter()
 router.register('projects', ProjectViewSet, basename='projects') 
 # router.register('issues', IssueViewSet, basename='issues') # a retirer a priory, doublon avec project/id/issues/id
 # router.register('comments', CommentViewSet, basename='comments') # idem
+router.register('contributors', ContributorViewSet, basename='contributors') # idem
 
 # url('/<pk_project>/issue/<issue_id>', f) viewset imbriqués avec un plugin ? cf liens sur le discord
 projects_router = routers.NestedSimpleRouter(router, 'projects', lookup='project')
@@ -36,5 +37,6 @@ urlpatterns = [
     path('', include(router.urls)),
 
     path('', include(projects_router.urls)),
+    # path('', include(issues_router.urls)),
 
 ]

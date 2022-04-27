@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.http import Http404
 
+from django.shortcuts import get_object_or_404
+
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -24,7 +26,7 @@ from .serializers import (
     CommentSerializer,
     ContributorsSerializer,
 )
-from .permissions import IsAdminAuthenticated, IsAuthorPermission
+from .permissions import IsAdminAuthenticated, IsCollaboratingPermission, IsAuthorPermission
     
 
 # Create your views here.
@@ -34,14 +36,20 @@ class ProjectViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated,] # pour get et post : contributeur du projet, pour delete et put : owner
     # pour passer la vue en lecture seule il suffit de changer l'héritage pour ReadOnlyModelViewset
 
+    def get_object(self):
+        obj = get_object_or_404(self.get_queryset(), pk=self.kwargs["pk"])
+        self.check_object_permissions(self.request, obj)
+        print(obj)
+        return obj
+
     def get_permissions(self):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
         if self.action == 'create':
             permission_classes = [IsAuthenticated,]
-        elif self.action == 'put':
-            permission_classes = [IsAuthenticated, ] # IsCollaborating quand c'est prêt
+        elif self.action == 'list':
+            permission_classes = [IsAuthenticated, IsCollaboratingPermission,] # IsCollaborating quand c'est prêt
         else:
             permission_classes = [IsAuthenticated, IsAuthorPermission]
         return [permission() for permission in permission_classes]
@@ -56,6 +64,17 @@ class ProjectViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    def list(self, request,):
+        queryset = Project.objects.filter()
+        serializer = ProjectSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = Project.objects.filter()
+        project = get_object_or_404(queryset, pk=pk)
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data)
 
 
 class IssueViewSet(ModelViewSet):
@@ -73,7 +92,7 @@ class IssueViewSet(ModelViewSet):
         
         if issue_id is not None:
             queryset = queryset.filter(issue_id = issue_id)
-            issue = self.queryset.get(issue_id = issue_id, project_id = self.kwargs['project_pk'])
+            issue = self.queryset.get(issue_id = issue_id, project_id = self.kwargs['project_id'])
             return issue
         else:
             queryset = Issue.objects.all()
@@ -81,6 +100,17 @@ class IssueViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    def list(self, request, project_id=None):
+        queryset = Issue.objects.filter(project=project_id)
+        serializer = IssueSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None, project_id=None):
+        queryset = Issue.objects.filter(pk=pk, project=project_id)
+        issue = get_object_or_404(queryset, pk=pk)
+        serializer = IssueSerializer(issue)
+        return Response(serializer.data)
     
 
 class CommentViewSet(ModelViewSet):
@@ -92,7 +122,7 @@ class CommentViewSet(ModelViewSet):
         comment_id = self.request.GET.get(id)
         if comment_id is not None:
             queryset = queryset.filter(comment_id = comment_id)
-            comment = self.queryset.get(comment_id = comment_id, issue_id = self.kwargs['issue_id'], project_id = self.kwargs['project_pk'])
+            comment = self.queryset.get(comment_id = comment_id, issue_id = self.kwargs['issue_id'], project_id = self.kwargs['project_id'])
             return comment
         else:
             queryset = Comment.objects.all()
@@ -100,6 +130,17 @@ class CommentViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+    
+    def list(self, request, project_id=None, issue_id=None):
+        queryset = Comment.objects.filter(project=project_id, issue=issue_id)
+        serializer = CommentSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None, project_id=None, issue_id=None):
+        queryset = Comment.objects.filter(pk=pk, project=project_id, issue=issue_id)
+        comment = get_object_or_404(queryset, pk=pk)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data)
 
 class ContributorViewSet(ModelViewSet):
 
