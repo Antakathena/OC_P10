@@ -16,7 +16,7 @@ from .models import(
     Project,
     Issue,
     Comment,
-    Contributors
+    Contributor
 )
 from .serializers import (
     ProjectSerializer,
@@ -24,7 +24,7 @@ from .serializers import (
     CommentSerializer,
     ContributorsSerializer,
 )
-from .permissions import IsAdminAuthenticated
+from .permissions import IsAdminAuthenticated, IsAuthorPermission
     
 
 # Create your views here.
@@ -40,10 +40,10 @@ class ProjectViewSet(ModelViewSet):
         """
         if self.action == 'create':
             permission_classes = [IsAuthenticated,]
-        # elif self.action == 'list':
-        #     permission_classes = [IsAuthenticated, IsCollaborating]
+        elif self.action == 'list':
+            permission_classes = [IsAuthenticated, ] # IsCollaborating quand c'est prêt
         else:
-            permission_classes = [IsAuthenticated, IsAdminAuthenticated] # ici changer IsAdminAuthenticated par IsOwner si défini
+            permission_classes = [IsAuthenticated, IsAuthorPermission]
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
@@ -53,6 +53,9 @@ class ProjectViewSet(ModelViewSet):
         else:
             queryset = Project.objects.all()
         return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class IssueViewSet(ModelViewSet):
@@ -74,12 +77,11 @@ class IssueViewSet(ModelViewSet):
             return issue
         else:
             queryset = Issue.objects.all()
-        return queryset
+            return queryset
 
-        # url('/<project>/<id>/issue/<id>', f)
-
-    # def perform_create(self, serializer):
-    #     serializer.save(owner=self.request.user)
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+    
 
 class CommentViewSet(ModelViewSet):
 
@@ -90,18 +92,48 @@ class CommentViewSet(ModelViewSet):
         comment_id = self.request.GET.get(id)
         if comment_id is not None:
             queryset = queryset.filter(comment_id = comment_id)
+            comment = self.queryset.get(comment_id = comment_id, issue_id = self.kwargs['issue_id'], project_id = self.kwargs['project_pk'])
+            return comment
         else:
             queryset = Comment.objects.all()
-        return queryset
+            return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class ContributorViewSet(ModelViewSet):
+
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated,]
+
+    def get_queryset(self):
+        contributor_id = self.request.GET.get(id)
+        if contributor_id is not None:
+            queryset = queryset.filter(contributor_id = contributor_id)
+            contributor = self.queryset.get(contributor_id = contributor_id) #, project_id = self.kwargs['project_pk'])
+            return contributor
+        else:
+            queryset = Contributor.objects.all()
+            return queryset
+
 
 @api_view(['GET'])
+
+
 def api_overview(request):
     """
     Une vue simple pour avoir un aperçu des ENDPOINTS demandés
     les r avant les guillemets servent à indiquer que tout est à prendre comme string
     """
+    
+    # if request.user.is_authenticated:
+    #     utilisateur = {  }
+    # else :
+    #     utilisateur = { "Vous n'êtes pas connecté" :"anonyme" ,}
+
 
     api_urls = {
+        "Vous être connecté en tant que" : f"{request.user}\n\n",
         "inscription":"  /signup/, POST",
         "connexion":"  /login/, POST",
         "déconnexion":"  /logout/, GET",

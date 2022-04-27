@@ -1,15 +1,16 @@
 from rest_framework import serializers
-from .models import Project, Issue, Comment, Contributors
+from .models import Project, Issue, Comment, Contributor
 
 class ProjectSerializer(serializers.ModelSerializer):
-    owner = serializers.ReadOnlyField(source='owner.username')  ##
+    author = serializers.ReadOnlyField(source='author.username')  ##
     
     class Meta:
         model = Project
-        fields = ['title', 'description', 'type', 'author', 'owner'] ##
+        fields = ['title', 'description', 'type', 'author'] ##
 
 
 class IssueSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(source='author.username')
 
     class Meta:
         model = Issue
@@ -17,6 +18,7 @@ class IssueSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(source='author.username')
 
     class Meta:
         model = Comment
@@ -24,8 +26,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ContributorsSerializer(serializers.ModelSerializer):
-
+    
     class Meta:
-        model = Contributors
+        model = Contributor
         fields = '__all__'
 

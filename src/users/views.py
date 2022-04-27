@@ -30,7 +30,7 @@ class AdminUserViewset(viewsets.ModelViewSet):
     Elle permet toutes les actions du CRUD sur les users"""
     serializer_class = CustomUserSerializer
     queryset = users = CustomUser.objects.all()
-    permission_classes = (IsAuthenticated, ) # quand ok on peut remettre Isadminauthenticated
+    permission_classes = (IsAuthenticated, IsAdminAuthenticated )
 
 
 class UserView(APIView):
@@ -42,17 +42,8 @@ class UserView(APIView):
         users = CustomUser.objects.all()
         serializer = CustomUserSerializer(users, many=True)
         return Response(serializer.data)
-"""
-class RegisterUserView(APIView):
-    serializer_class= RegisterUserSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response({"user":CustomUserSerializer(user, context=self.get_serializer_context()).data, "message":"User Created Successfully.Now perform login to get your token",})
 
-"""
 class RegisterUserView(APIView):
     """
     create a new user

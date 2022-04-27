@@ -13,16 +13,16 @@ app_name = 'users'  # pour utiliser namespace dans les urls
 
 urlpatterns = [
     # path('token/', GetTokens.as_view(), name='token_obtain_pair'),
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     # path('token/refresh/', RefreshToken.as_view(), name='token_refresh'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # non plus maintenu : url(r'^api-token-auth/', obtain_jwt_token),
     path('userslist/', UserView.as_view()),
     path('signup/', RegisterUserView.as_view()),
-    path('login/', AuthenticateUser.as_view(), name='login'),
+    # path('login/', AuthenticateUser.as_view(), name='login'),
 ]
 
 router = DefaultRouter()
-router.register('user', AdminUserViewset, basename ='user')
+router.register('users', AdminUserViewset, basename ='users')
 
 urlpatterns += router.urls

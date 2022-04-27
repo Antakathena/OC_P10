@@ -15,6 +15,7 @@ class Project(models.Model):
 
 class Issue(models.Model):
     """
+    Classe des problèmes liés à un projet.
     """
     title = models.CharField(max_length=128)
     description = models.CharField(max_length=128)
@@ -31,7 +32,7 @@ class Issue(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.title}, soulevé par {self.author_user_id}, responsable : {self.assignee_user_id}"
+        return f"{self.title} (id:{self.id}), soulevé par {self.author_user_id}, responsable : {self.assignee_user_id}"
 
 class Comment(models.Model):
     """
@@ -46,7 +47,7 @@ class Comment(models.Model):
     def __str__(self):
         return f"{self.headline}, écrit par {self.user}"
 
-class Contributors(models.Model):
+class Contributor(models.Model):
     """
     user_id = contributor,
     project_id = project(integerfield),
@@ -77,5 +78,5 @@ class Contributors(models.Model):
         unique_together = ('contributor', 'project',)
         
 
-        def __str__(self):
-            return f"{self.contributor} participe au projet: {self.project}"
+    def __str__(self):
+        return f"{self.contributor} participe au projet: {self.project}"
