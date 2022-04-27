@@ -40,7 +40,7 @@ class ProjectViewSet(ModelViewSet):
         """
         if self.action == 'create':
             permission_classes = [IsAuthenticated,]
-        elif self.action == 'list':
+        elif self.action == 'put':
             permission_classes = [IsAuthenticated, ] # IsCollaborating quand c'est prêt
         else:
             permission_classes = [IsAuthenticated, IsAuthorPermission]
@@ -103,7 +103,7 @@ class CommentViewSet(ModelViewSet):
 
 class ContributorViewSet(ModelViewSet):
 
-    serializer_class = CommentSerializer
+    serializer_class = ContributorsSerializer
     permission_classes = [IsAuthenticated,]
 
     def get_queryset(self):
@@ -118,7 +118,6 @@ class ContributorViewSet(ModelViewSet):
 
 
 @api_view(['GET'])
-
 
 def api_overview(request):
     """

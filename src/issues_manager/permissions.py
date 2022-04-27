@@ -1,4 +1,6 @@
 from rest_framework.permissions import BasePermission
+
+SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
  
 class IsAdminAuthenticated(BasePermission):
     pass
@@ -18,12 +20,19 @@ class IsCollaborating(BasePermission):
     pass
 
 class IsAuthorPermission(BasePermission):
-    message = "Seul l'auteur peut modifier ou supprimer son post"
+    message = "Seul l'auteur peut modifier ou supprimer son post" # delete et put patch
 
     def has_object_permission(self, request, view, obj):
-        return bool(obj.author == request.user)  #request.method is SAFE_METHODS:  get, options or head
+        if obj.author == request.user:
+            print("author should access to all methods on their posts")
+            return True
+        elif request.user.is_authenticated and request.method in SAFE_METHODS:
+            print("collaborators should be able to read and post issues to projects or comments to issues")
+            return True
+        else :
+            return False
 
-    # delete et put patch
+    
     pass
 
 # pour issues et comments, ajouter un related name ou @property owner devrait suffir?
