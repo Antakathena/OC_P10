@@ -14,7 +14,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 
-from .models import(
+from .models import (
     Project,
     Issue,
     Comment,
@@ -33,7 +33,7 @@ from .permissions import IsAdminAuthenticated, IsCollaboratingPermission, IsAuth
 
 class ProjectViewSet(ModelViewSet):
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated,] # pour get et post : contributeur du projet, pour delete et put : owner
+    permission_classes = [IsAuthenticated, ]  # pour get et post : contributeur du projet, pour delete et put : owner
     # pour passer la vue en lecture seule il suffit de changer l'héritage pour ReadOnlyModelViewset
 
     def get_object(self):
@@ -47,9 +47,9 @@ class ProjectViewSet(ModelViewSet):
         Instantiates and returns the list of permissions that this view requires.
         """
         if self.action == 'create':
-            permission_classes = [IsAuthenticated,]
+            permission_classes = [IsAuthenticated, ]
         elif self.action == 'list':
-            permission_classes = [IsAuthenticated, IsCollaboratingPermission,] # IsCollaborating quand c'est prêt
+            permission_classes = [IsAuthenticated, IsCollaboratingPermission, ]
         else:
             permission_classes = [IsAuthenticated, IsAuthorPermission]
         return [permission() for permission in permission_classes]
@@ -57,7 +57,8 @@ class ProjectViewSet(ModelViewSet):
     def get_queryset(self):
         project_id = self.request.GET.get(id)
         if project_id is not None:
-            queryset = queryset.filter(project_id = project_id)
+            queryset = Project.objects.filter(project_id=project_id)
+            # nb 28/04/2022 remplacé queryset.filter par Project.objects.filter
         else:
             queryset = Project.objects.all()
         return queryset
@@ -80,7 +81,7 @@ class ProjectViewSet(ModelViewSet):
 class IssueViewSet(ModelViewSet):
 
     serializer_class = IssueSerializer
-    permission_classes = [IsAuthenticated,]
+    permission_classes = [IsAuthenticated, ]
 
     # exemple avec nested router : def get_queryset(self):
     # return Issue.objects.filter(project = self.kwargs['project_pk'])
@@ -91,8 +92,9 @@ class IssueViewSet(ModelViewSet):
         issue_id = self.request.GET.get(id)
         
         if issue_id is not None:
-            queryset = queryset.filter(issue_id = issue_id)
-            issue = self.queryset.get(issue_id = issue_id, project_id = self.kwargs['project_id'])
+            queryset = Issue.objects.filter(issue_id=issue_id)
+            # nb 28/04/2022 remplacé queryset.filter par Issue.objects.filter
+            issue = self.queryset.get(issue_id=issue_id, project_id=self.kwargs['project_id'])
             return issue
         else:
             queryset = Issue.objects.all()
@@ -116,13 +118,18 @@ class IssueViewSet(ModelViewSet):
 class CommentViewSet(ModelViewSet):
 
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated,]
+    permission_classes = [IsAuthenticated, ]
 
     def get_queryset(self):
         comment_id = self.request.GET.get(id)
         if comment_id is not None:
-            queryset = queryset.filter(comment_id = comment_id)
-            comment = self.queryset.get(comment_id = comment_id, issue_id = self.kwargs['issue_id'], project_id = self.kwargs['project_id'])
+            queryset = Comment.objects.filter(comment_id=comment_id)
+            # nb 28/04/2022 remplacé queryset.filter par Comment.objects.filter
+            comment = self.queryset.get(
+                comment_id=comment_id,
+                issue_id=self.kwargs['issue_id'],
+                project_id=self.kwargs['project_id']
+            )
             return comment
         else:
             queryset = Comment.objects.all()
@@ -132,7 +139,10 @@ class CommentViewSet(ModelViewSet):
         serializer.save(author=self.request.user)
     
     def list(self, request, project_id=None, issue_id=None):
-        queryset = Comment.objects.filter(project=project_id, issue=issue_id)
+        queryset = Comment.objects.filter(
+            project=project_id,
+            issue=issue_id
+        )
         serializer = CommentSerializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -142,16 +152,19 @@ class CommentViewSet(ModelViewSet):
         serializer = CommentSerializer(comment)
         return Response(serializer.data)
 
+
 class ContributorViewSet(ModelViewSet):
 
     serializer_class = ContributorsSerializer
-    permission_classes = [IsAuthenticated,]
+    permission_classes = [IsAuthenticated, ]
 
     def get_queryset(self):
         contributor_id = self.request.GET.get(id)
         if contributor_id is not None:
-            queryset = queryset.filter(contributor_id = contributor_id)
-            contributor = self.queryset.get(contributor_id = contributor_id) #, project_id = self.kwargs['project_pk'])
+            queryset = Contributor.objects.filter(contributor_id=contributor_id)
+            # nb 28/04/2022 remplacé queryset.filter par Contributor.objects.filter
+            contributor = self.queryset.get(contributor_id=contributor_id)
+            # project_id = self.kwargs['project_pk'])
             return contributor
         else:
             queryset = Contributor.objects.all()
@@ -159,7 +172,6 @@ class ContributorViewSet(ModelViewSet):
 
 
 @api_view(['GET'])
-
 def api_overview(request):
     """
     Une vue simple pour avoir un aperçu des ENDPOINTS demandés
@@ -171,33 +183,31 @@ def api_overview(request):
     # else :
     #     utilisateur = { "Vous n'êtes pas connecté" :"anonyme" ,}
 
-
     api_urls = {
-        "Vous être connecté en tant que" : f"{request.user}\n\n",
-        "inscription":"  /signup/, POST",
-        "connexion":"  /login/, POST",
-        "déconnexion":"  /logout/, GET",
+        "Vous être connecté en tant que": f"{request.user}\n\n",
+        "inscription": "  /signup/, POST",
+        "connexion": "  /login/, POST",
+        "déconnexion": "  /logout/, GET",
 
-        "récupérer la liste des projets autorisés":"  /projects/, GET",
+        "récupérer la liste des projets autorisés": "  /projects/, GET",
 
-        "créer un projet":"  /projects/, POST",
-        "récupérer les détails d'un projet":r"  /projects/{id}/, GET",
-        "mettre à jour un projet":r"  /projects/{id}/, PUT",
-        "supprimer un projet et ses problèmes":r"  /projects/{id}/DELETE",
+        "créer un projet": "  /projects/, POST",
+        "récupérer les détails d'un projet": r"  /projects/{id}/, GET",
+        "mettre à jour un projet": r"  /projects/{id}/, PUT",
+        "supprimer un projet et ses problèmes": r"  /projects/{id}/DELETE",
 
-        "ajouter un utilisateur (collaborateur) à un projet":r"  /projects/{id}/users, POST",
-        "récupérer la liste de tous les contributeurs d'un projet":r"  /projects/{id}/users, GET",
-        "retirer un contributeur d'un projet":r"  /projects/{id}/users, DELETE",
+        "ajouter un utilisateur (collaborateur) à un projet": r"  /projects/{id}/users, POST",
+        "récupérer la liste de tous les contributeurs d'un projet": r"  /projects/{id}/users, GET",
+        "retirer un contributeur d'un projet": r"  /projects/{id}/users, DELETE",
 
-        "créer un problème lié à un projet":r"  /projects/{id}/issues, POST",
-        "récupérer la liste des problèmes liés à un projet":r"  /projects/{id}/issues, GET",
-        "Mettre à jour un problème":r"  /projects/{id}/issues, PUT",
-        "supprimer un problème":r"  /projects/{id}/issues, DELETE",
+        "créer un problème lié à un projet": r"  /projects/{id}/issues, POST",
+        "récupérer la liste des problèmes liés à un projet": r"  /projects/{id}/issues, GET",
+        "Mettre à jour un problème": r"  /projects/{id}/issues, PUT",
+        "supprimer un problème": r"  /projects/{id}/issues, DELETE",
 
-        "commenter un problème":r"  /projects/{id}/issues/comments, POST",
-        "récupérer les commentaires sur un problème":r"  /projects/{id}/issues/comments, GET",
-        "modifier son commentaire":r"  /projects/{id}/issues, PUT",
-        "supprimer son commentaire":r"  /projects/{id}/issues, DELETE",
+        "commenter un problème": r"  /projects/{id}/issues/comments, POST",
+        "récupérer les commentaires sur un problème": r"  /projects/{id}/issues/comments, GET",
+        "modifier son commentaire": r"  /projects/{id}/issues, PUT",
+        "supprimer son commentaire": r"  /projects/{id}/issues, DELETE",
     }
-
     return Response(api_urls)

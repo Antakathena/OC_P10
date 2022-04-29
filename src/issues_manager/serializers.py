@@ -2,17 +2,19 @@ from rest_framework import serializers
 from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from .models import Project, Issue, Comment, Contributor
 
+
 class ProjectSerializer(serializers.ModelSerializer):
-# class ProjectSerializer(serializers.HyperlinkedModelSerializer):
+    # class ProjectSerializer(serializers.HyperlinkedModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
     issues = serializers.ReadOnlyField(source='self.issues')
     
     class Meta:
         model = Project
         fields = ['title', 'description', 'type', 'author', 'issues'] # issues ajouté
-    
+
+
 class IssueSerializer(serializers.ModelSerializer):
-# class IssueSerializer(serializers.NestedHyperlinkedModelSerializer):   
+    # class IssueSerializer(serializers.NestedHyperlinkedModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
     
     # parent_lookup_kwargs = {
@@ -24,7 +26,7 @@ class IssueSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-# class CommentSerializer(serializers.NestedHyperlinkedModelSerializer): 
+    # class CommentSerializer(serializers.NestedHyperlinkedModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
 
     # parent_lookup_kwargs = {
