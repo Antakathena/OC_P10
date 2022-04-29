@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import generics
 from rest_framework.response import Response
 
 from rest_framework.viewsets import ModelViewSet
@@ -26,15 +27,20 @@ from .serializers import (
     CommentSerializer,
     ContributorsSerializer,
 )
-from .permissions import IsAdminAuthenticated, IsCollaboratingPermission, IsAuthorPermission
+from .permissions import IsCollaboratingPermission, IsAuthorPermission
     
 
-# Create your views here.
-
 class ProjectViewSet(ModelViewSet):
+    """
+    Classe des projets.
+    Tout les utilisateurs authentifiés peuvent créer un projet (POST/create_Project).
+    Seul l'auteur peut modifier ou supprimer le projet (retrieve, update, destroy_Project).
+    Seuls les contributeurs peuvent voir les détails du projet (GET/list_Project),
+    et notifier un problème pour ce projet (POST/create_Issue).
+    """
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated, ]  # pour get et post : contributeur du projet, pour delete et put : owner
-    # pour passer la vue en lecture seule il suffit de changer l'héritage pour ReadOnlyModelViewset
+    permission_classes = [IsAuthenticated, ] 
+    
 
     def get_object(self):
         obj = get_object_or_404(self.get_queryset(), pk=self.kwargs["pk"])
@@ -45,7 +51,9 @@ class ProjectViewSet(ModelViewSet):
     def get_permissions(self):
         """
         Instantiates and returns the list of permissions that this view requires.
+        # pour get et post : contributeur du projet, pour delete et put : author
         """
+
         if self.action == 'create':
             permission_classes = [IsAuthenticated, ]
         elif self.action == 'list':
@@ -78,6 +86,19 @@ class ProjectViewSet(ModelViewSet):
         return Response(serializer.data)
 
 
+class ProjectIssuesView(generics.ListCreateAPIView):
+    
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated, IsCollaboratingPermission]
+
+    def get_queryset(self, *args, **kwargs):
+        print("args:" + args)
+        print("kwargs:" + kwargs)
+        project_id = self.kwargs['project_id']
+        queryset = Issue.objects.filter(project=project_id)
+        return queryset
+
+
 class IssueViewSet(ModelViewSet):
 
     serializer_class = IssueSerializer
@@ -88,7 +109,7 @@ class IssueViewSet(ModelViewSet):
 
     @action(methods=['get', 'post'], detail=True)
     # , url_path='project/(?<project_pk>[^/.]+)')
-    def get_queryset(self):
+    def get_queryset(self, *arg, **kwargs):
         issue_id = self.request.GET.get(id)
         
         if issue_id is not None:
@@ -103,7 +124,7 @@ class IssueViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def list(self, request, project_id=None):
+    def list(self, request, project_id=None, **kwarg):
         queryset = Issue.objects.filter(project=project_id)
         serializer = IssueSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -184,7 +205,7 @@ def api_overview(request):
     #     utilisateur = { "Vous n'êtes pas connecté" :"anonyme" ,}
 
     api_urls = {
-        "Vous être connecté en tant que": f"{request.user}\n\n",
+        "Vous être connecté en tant que": f"{request.user}",
         "inscription": "  /signup/, POST",
         "connexion": "  /login/, POST",
         "déconnexion": "  /logout/, GET",

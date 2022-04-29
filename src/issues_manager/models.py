@@ -4,7 +4,10 @@ from django.db import models
 
 
 class Project(models.Model):
-    """author = author_user_id """
+    """
+    Modèle des projets
+    """
+
     title = models.CharField(max_length=128)
     description = models.CharField(max_length=128)
     type = models.CharField(max_length=128)
@@ -16,48 +19,49 @@ class Project(models.Model):
 
 class Issue(models.Model):
     """
-    Classe des problèmes liés à un projet (instance de Project).
+    Modèle des problèmes liés à une instance de Projet.
     """
+
     title = models.CharField(max_length=128)
     description = models.CharField(max_length=128)
     tag = models.CharField(max_length=128)
     priority = models.CharField(max_length=128)
-    # project_id= models.IntegerField()
-    project_id = models.ForeignKey(
-        to=Project, on_delete=models.CASCADE, related_name="projet_associe")
+    project = models.ForeignKey(
+        to=Project, on_delete=models.CASCADE, related_name="issue")
     status = models.CharField(max_length=128)
-    author_user_id = models.ForeignKey(
+    author = models.ForeignKey(
         to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="auteur")  # créateur
-    assignee_user_id = models.ForeignKey(
+    assignee = models.ForeignKey(
         to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="responsable")  # responsable
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.title} (id:{self.id}), soulevé par {self.author_user_id}, responsable : {self.assignee_user_id}"
+        return f"Problème (id:{self.id}) : {self.title} , soulevé par {self.author}, responsable : {self.assignee}"
 
 
 class Comment(models.Model):
     """
-    Classe des commentaires liés à un problème (instance de Issue).
+    Modèle des commentaires liés à un problème (instance de Issue).
     """
     description = models.CharField(max_length=128)
-    issue_id = models.ForeignKey(
+    issue = models.ForeignKey(
         to=Issue, on_delete=models.CASCADE)
-    author_user_id = models.ForeignKey(
+    author = models.ForeignKey(
         to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.headline}, écrit par {self.user}"
+        return f"Commentaire {self.id}, écrit par {self.author}"
 
 
 class Contributor(models.Model):
     """
-    user_id = contributor,
-    project_id = project(integerfield),
-    permission(ChoiceField)
-    role(Charfield)
+    Modèle pour associer des utilisateurs à un projet en tant que contributeurs.
     """
+
+    # il faudrait rendre le message d'erreur  "Les champs user,
+    # project doivent former un ensemble unique." plus clair ""
+
     CONTRIBUTEUR = 'contributeur'
     RESPONSABLE = 'responsable'
     CHOICES = [
@@ -65,7 +69,7 @@ class Contributor(models.Model):
         (RESPONSABLE, "responsable")
     ]
 
-    contributor = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
     permission = models.CharField(
         max_length=15,
@@ -77,7 +81,7 @@ class Contributor(models.Model):
     class Meta:
         # ensures we don't get multiple instances
         # for unique user-project pairs
-        unique_together = ('contributor', 'project',)
+        unique_together = ('user', 'project', )
 
     def __str__(self):
-        return f"{self.contributor} participe au projet: {self.project}"
+        return f"{self.user} participe au projet: {self.project}, en tant que {self.permission}"

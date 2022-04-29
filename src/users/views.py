@@ -50,7 +50,6 @@ class RegisterUserView(APIView):
     Marche mais ajouter de quoi rentre obligatoire : validator? required?
     first_name et last_name
     """
-    # Allow any user (authenticated or not) to access this url 
     permission_classes = (AllowAny,)
     serializer_class= RegisterUserSerializer  # NB : si on ne met pas ça là on a pas de formulaire adequate à remplir
 
@@ -63,7 +62,7 @@ class RegisterUserView(APIView):
             # comment ajouter un message, "l'utilisateur untel a bien été créé" ?
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+"""
 class GetTokens(TokenObtainPairView):
     permission_classes = (AllowAny,)
 
@@ -75,12 +74,12 @@ class GetTokens(TokenObtainPairView):
         try:
             serializer.is_valid(raise_exception=True)
             print("OK\n\n")
-        except Exception as e:
-            print(e)
-            raise
         except TokenError as e:
             print("erreur\n")
             raise InvalidToken(e.args[0])
+        except Exception as e: # à retirer après car il faut éviter juste Exception
+            print(e)
+            raise
 
 class RefreshToken(TokenRefreshView):
     permission_classes = (AllowAny,)
@@ -128,7 +127,7 @@ class AuthenticateUser(APIView):
             res = {'error': 'please provide a email and a password'}
             return Response(res)
 
-"""
+
 Tuto indiqué dans le projet
                 # plop : reprendre le tuto : https://code.tutsplus.com/tutorials/how-to-authenticate-with-jwt-in-django--cms-30460
                 try:
