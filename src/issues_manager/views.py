@@ -12,7 +12,11 @@ from rest_framework import generics
 from rest_framework.response import Response
 
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAdminUser,
+)
+
 from rest_framework.decorators import action
 
 from .models import (
@@ -39,8 +43,8 @@ class ProjectViewSet(ModelViewSet):
     et notifier un problème pour ce projet (POST/create_Issue).
     """
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated, ] 
-    
+    permission_classes = [IsAuthenticated, ]
+        
 
     def get_object(self):
         obj = get_object_or_404(self.get_queryset(), pk=self.kwargs["pk"])
@@ -65,38 +69,41 @@ class ProjectViewSet(ModelViewSet):
     def get_queryset(self):
         project_id = self.request.GET.get(id)
         if project_id is not None:
-            queryset = Project.objects.filter(project_id=project_id)
+            queryset = Project.objects.filter(id=project_id)
             # nb 28/04/2022 remplacé queryset.filter par Project.objects.filter
         else:
-            queryset = Project.objects.all()
+            queryset = Project.objects.filter(contributor__user = self.request.user)
+            #(contributor__user = self.request.user) abouti à l'erreur :
+
         return queryset
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
     def list(self, request,):
-        queryset = Project.objects.filter()
+        queryset = Project.objects.filter(contributor__user = self.request.user)
         serializer = ProjectSerializer(queryset, many=True)
+        # issues =  Issue.objects.filter(project = self)  # comment ajouter la liste des issues?
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
-        queryset = Project.objects.filter()
+        queryset = Project.objects.filter(contributor__user = self.request.user)
         project = get_object_or_404(queryset, pk=pk)
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
 
 
-class ProjectIssuesView(generics.ListCreateAPIView):
+# class ProjectIssuesView(generics.ListCreateAPIView):
     
-    serializer_class = IssueSerializer
-    permission_classes = [IsAuthenticated, IsCollaboratingPermission]
+#     serializer_class = IssueSerializer
+#     permission_classes = [IsAuthenticated, IsCollaboratingPermission]
 
-    def get_queryset(self, *args, **kwargs):
-        print("args:" + args)
-        print("kwargs:" + kwargs)
-        project_id = self.kwargs['project_id']
-        queryset = Issue.objects.filter(project=project_id)
-        return queryset
+#     def get_queryset(self, *args, **kwargs):
+#         print("args:" + args)
+#         print("kwargs:" + kwargs)
+#         project_id = self.kwargs['project_id']
+#         queryset = Issue.objects.filter(project=project_id)
+#         return queryset
 
 
 class IssueViewSet(ModelViewSet):
@@ -111,26 +118,27 @@ class IssueViewSet(ModelViewSet):
     # , url_path='project/(?<project_pk>[^/.]+)')
     def get_queryset(self, *arg, **kwargs):
         issue_id = self.request.GET.get(id)
+        queryset = Issue.objects.filter(project__contributor__user = self.request.user)
         
         if issue_id is not None:
-            queryset = Issue.objects.filter(issue_id=issue_id)
+            queryset = queryset.filter(id=issue_id)
             # nb 28/04/2022 remplacé queryset.filter par Issue.objects.filter
-            issue = self.queryset.get(issue_id=issue_id, project_id=self.kwargs['project_id'])
+            issue = queryset.get(issue_id=issue_id, project=self.kwargs['project_pk'])
             return issue
         else:
-            queryset = Issue.objects.all()
-            return queryset
+            project_issues = queryset.filter(project=self.kwargs['project_pk'])
+            return project_issues
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def list(self, request, project_id=None, **kwarg):
-        queryset = Issue.objects.filter(project=project_id)
+    def list(self, request, project_pk=None, **kwarg):
+        queryset = Issue.objects.filter(project=project_pk)
         serializer = IssueSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, pk=None, project_id=None):
-        queryset = Issue.objects.filter(pk=pk, project=project_id)
+    def retrieve(self, request, pk=None, project_pk=None):
+        queryset = Issue.objects.filter(pk=pk, project=project_pk)
         issue = get_object_or_404(queryset, pk=pk)
         serializer = IssueSerializer(issue)
         return Response(serializer.data)
@@ -159,16 +167,16 @@ class CommentViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
     
-    def list(self, request, project_id=None, issue_id=None):
+    def list(self, request, project_pk=None, issues_pk=None):
         queryset = Comment.objects.filter(
-            project=project_id,
-            issue=issue_id
+            issue__project=project_pk,
+            issue=issues_pk
         )
         serializer = CommentSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, pk=None, project_id=None, issue_id=None):
-        queryset = Comment.objects.filter(pk=pk, project=project_id, issue=issue_id)
+    def retrieve(self, request, pk=None, project_pk=None, issues_pk=None):
+        queryset = Comment.objects.filter(pk=pk, issue__project=project_pk, issue=issues_pk)
         comment = get_object_or_404(queryset, pk=pk)
         serializer = CommentSerializer(comment)
         return Response(serializer.data)
@@ -191,6 +199,13 @@ class ContributorViewSet(ModelViewSet):
             queryset = Contributor.objects.all()
             return queryset
 
+class AdminProjectViewset(ModelViewSet):
+    """Changer la permission pour réserver cette vue aux administrateurs
+    Elle permet toutes les actions du CRUD sur les users"""
+    serializer_class = ProjectSerializer
+    queryset = projects = Project.objects.all()  
+    permission_classes = (IsAuthenticated, IsAdminUser)
+    
 
 @api_view(['GET'])
 def api_overview(request):

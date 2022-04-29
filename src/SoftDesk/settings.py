@@ -66,7 +66,7 @@ REST_FRAMEWORK = {  # ajouté
 
 SIMPLE_JWT = {  # tous les default settings, pour apprendre
     # https://www.youtube.com/watch?v=xjMP0hspNLE
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
     'ROTATE_REFRESH_TOKENS': False, 
     # False par défaut. True = si on est actif sur le site, active un refresh token
@@ -98,7 +98,7 @@ SIMPLE_JWT = {  # tous les default settings, pour apprendre
     'JTI_CLAIM': 'jti',
 
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=1),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=90),
 }
 

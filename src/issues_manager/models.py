@@ -2,19 +2,29 @@ from django.db import models
 from django.conf import settings
 from django.db import models
 
+import users
+
 
 class Project(models.Model):
     """
     Modèle des projets
     """
 
-    title = models.CharField(max_length=128)
+    title = models.CharField(max_length=128, unique=True)
     description = models.CharField(max_length=128)
     type = models.CharField(max_length=128)
     author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='project_manager')
 
+    def save(self, *args, **kwargs):
+        # à ce moment le project_id n'existe pas
+        old_project_id = self.id
+        # puis on le créé avec le super().save
+        super().save(*args, **kwargs)
+        if old_project_id is None:
+            Contributor.objects.create(user=self.author,project=self,role='auteur')
+
     def __str__(self):
-        return f"{self.title}"
+        return f"{self.title}(projet {self.id})"
 
 
 class Issue(models.Model):
@@ -36,7 +46,7 @@ class Issue(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Problème (id:{self.id}) : {self.title} , soulevé par {self.author}, responsable : {self.assignee}"
+        return f"{self.project}, (issue {self.id})   {self.title} , {self.status}, responsable : {self.assignee}"
 
 
 class Comment(models.Model):
@@ -51,7 +61,7 @@ class Comment(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Commentaire {self.id}, écrit par {self.author}"
+        return f"(Commentaire {self.id}) {self.description} écrit par {self.author}, {self.issue}"
 
 
 class Contributor(models.Model):
@@ -84,4 +94,4 @@ class Contributor(models.Model):
         unique_together = ('user', 'project', )
 
     def __str__(self):
-        return f"{self.user} participe au projet: {self.project}, en tant que {self.permission}"
+        return f"{self.user}, {self.project}"

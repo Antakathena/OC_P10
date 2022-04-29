@@ -7,7 +7,6 @@ from users.models import CustomUser
 class ProjectSerializer(serializers.ModelSerializer):
     # class ProjectSerializer(serializers.HyperlinkedModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
-    issues = serializers.ReadOnlyField(source='self.issues')
     
     class Meta:
         model = Project
@@ -16,7 +15,6 @@ class ProjectSerializer(serializers.ModelSerializer):
             'description',
             'type',
             'author',
-            'issues' # issues ajouté (avoir la liste simple ou le nbr d'issues?)
             ] 
 
 
@@ -24,7 +22,9 @@ class IssueSerializer(serializers.ModelSerializer):
     # class IssueSerializer(serializers.NestedHyperlinkedModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
     issue_id = serializers.ReadOnlyField(source='id')
-    project = serializers.RelatedField(read_only=True)
+    # project = serializers.PrimaryKeyRelatedField(many=False, queryset=Project.objects.filter(id=...))
+
+    # project = serializers.RelatedField(read_only=True)
 
     # assignee = serializers.SlugRelatedField( # plutôt que ReadOnly?
     #     queryset=CustomUser.objects.all(),
@@ -37,31 +37,34 @@ class IssueSerializer(serializers.ModelSerializer):
     # }
     class Meta:
         model = Issue
-        fields = [
-            'title',
-            'description',
-            'tag',
-            'priority',
-            'project',
-            'status',
-            'author',
-            'issue_id',
-            'assignee',
-            'created_time',
-            ]
-    def validate_assignee(self, assignee):
-        print("self:")
-        print(self)
-        print("self.project: "+ self.project)
-        print("assignee:" + assignee)
-        user_id = assignee.id
-        print("user_id:"+ user_id)
-        print (Contributor.objects.all())
-        if not Contributor.objects.filter(
-            user=user_id, project= self.project).exists():
-            error_message = str(assignee) +"n'est pas collaborateur du projet"
-            raise serializers.validationError(error_message)
-        return user_id
+        fields = '__all__'
+        
+        #  [
+        #     'title',
+        #     'description',
+        #     'tag',
+        #     'priority',
+        #     'project',
+        #     'status',
+        #     'author',
+        #     'issue_id',
+        #     'assignee',
+        #     'created_time',
+        #     ]
+
+    # def validate_assignee(self, assignee, project):
+    #      print("self:")
+    #      print(self)
+    #      print("assignee:" + str(assignee))
+    #      user_id = assignee.id
+    #      print("user_id:"+ str(user_id))
+    #      print(self.project)
+    # #     # print (Contributor.objects.all())
+    # #     # if not Contributor.objects.filter(
+    # #     #     user=user_id, project= self.project).exists():
+    # #     #     error_message = str(assignee) +"n'est pas collaborateur du projet"
+    # #     #     raise serializers.validationError(error_message)
+    #      return assignee
     
 
 
