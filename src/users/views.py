@@ -23,33 +23,29 @@ from rest_framework_simplejwt.exceptions import (
 from .models import CustomUser
 from .serializer import CustomUserSerializer, RegisterUserSerializer
 from issues_manager.permissions import IsAdminAuthenticated
-# Create your views here.
+
 
 class AdminUserViewset(viewsets.ModelViewSet):
-    """Changer la permission pour réserver cette vue aux administrateurs
-    Elle permet toutes les actions du CRUD sur les users"""
+    """Vue réservée aux administrateurs
+    Elle permet toutes les actions du CRUD sur les users
+    """
     serializer_class = CustomUserSerializer
     queryset = users = CustomUser.objects.all()
     permission_classes = (IsAuthenticated, IsAdminAuthenticated )
 
 
 class UserView(APIView):
-    """
-    List all users
-    """
+    """ List all users """
+    
     def get(self,*args, **kwargs):
-        """Attention : les args et kwargs semblent inutile mais ça plante sans"""
+        """Attention : les args et kwargs semblent inutiles mais ça plante sans"""
         users = CustomUser.objects.all()
         serializer = CustomUserSerializer(users, many=True)
         return Response(serializer.data)
 
 
 class RegisterUserView(APIView):
-    """
-    create a new user
-    Marche mais ajouter de quoi rentre obligatoire : validator? required?
-    first_name et last_name
-    """
+    """ create a new user """
     permission_classes = (AllowAny,)
     serializer_class= RegisterUserSerializer  # NB : si on ne met pas ça là on a pas de formulaire adequate à remplir
 

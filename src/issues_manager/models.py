@@ -16,6 +16,12 @@ class Project(models.Model):
     author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='project_manager')
 
     def save(self, *args, **kwargs):
+        """
+        surcharge de la fonction save() pour enregistrer
+        comme contributeur du projet, avec le role d'auteur,
+        le créateur de l'instance
+        """
+
         # à ce moment le project_id n'existe pas
         old_project_id = self.id
         # puis on le créé avec le super().save
@@ -68,9 +74,8 @@ class Contributor(models.Model):
     """
     Modèle pour associer des utilisateurs à un projet en tant que contributeurs.
     """
-
-    # il faudrait rendre le message d'erreur  "Les champs user,
-    # project doivent former un ensemble unique." plus clair ""
+    # Rendre le message d'erreur  "Les champs user,
+    # project doivent former un ensemble unique." plus clair ?
 
     CONTRIBUTEUR = 'contributeur'
     RESPONSABLE = 'responsable'

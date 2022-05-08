@@ -53,11 +53,10 @@ class ProjectViewSet(ModelViewSet):
         return obj
 
     def get_permissions(self):
-        """
+        """ gets permissions
         Instantiates and returns the list of permissions that this view requires.
         # pour get et post : contributeur du projet, pour delete et put : author
         """
-
         if self.action == 'create':
             permission_classes = [IsAuthenticated, ]
         elif self.action == 'list':
@@ -67,43 +66,34 @@ class ProjectViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
+        """ gets list of projects or a specific project
+        If a project_id is given, gets a specific project,
+        else gets all projects for the connected user if no id has been given
+        """
         project_id = self.request.GET.get(id)
         if project_id is not None:
             queryset = Project.objects.filter(id=project_id)
-            # nb 28/04/2022 remplacé queryset.filter par Project.objects.filter
         else:
             queryset = Project.objects.filter(contributor__user = self.request.user)
-            #(contributor__user = self.request.user) abouti à l'erreur :
 
         return queryset
 
     def perform_create(self, serializer):
+        """designate creator as author of the instance"""
         serializer.save(author=self.request.user)
 
     def list(self, request,):
+        """used by nested urls"""
         queryset = Project.objects.filter(contributor__user = self.request.user)
         serializer = ProjectSerializer(queryset, many=True)
-        # issues =  Issue.objects.filter(project = self)  # comment ajouter la liste des issues?
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
+        """used by nested urls"""
         queryset = Project.objects.filter(contributor__user = self.request.user)
         project = get_object_or_404(queryset, pk=pk)
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
-
-
-# class ProjectIssuesView(generics.ListCreateAPIView):
-    
-#     serializer_class = IssueSerializer
-#     permission_classes = [IsAuthenticated, IsCollaboratingPermission]
-
-#     def get_queryset(self, *args, **kwargs):
-#         print("args:" + args)
-#         print("kwargs:" + kwargs)
-#         project_id = self.kwargs['project_id']
-#         queryset = Issue.objects.filter(project=project_id)
-#         return queryset
 
 
 class IssueViewSet(ModelViewSet):
@@ -145,7 +135,6 @@ class IssueViewSet(ModelViewSet):
     
 
 class CommentViewSet(ModelViewSet):
-
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated, ]
 
@@ -199,9 +188,10 @@ class ContributorViewSet(ModelViewSet):
             queryset = Contributor.objects.all()
             return queryset
 
+
 class AdminProjectViewset(ModelViewSet):
-    """Changer la permission pour réserver cette vue aux administrateurs
-    Elle permet toutes les actions du CRUD sur les users"""
+    """Vues reservée aux administrateurs
+    Elle permet toutes les actions du CRUD sur les projets"""
     serializer_class = ProjectSerializer
     queryset = projects = Project.objects.all()  
     permission_classes = (IsAuthenticated, IsAdminUser)
@@ -219,8 +209,10 @@ def api_overview(request):
     # else :
     #     utilisateur = { "Vous n'êtes pas connecté" :"anonyme" ,}
 
-    api_urls = {
-        "Vous être connecté en tant que": f"{request.user}",
+    infos = {
+        "Bienvenue dans l'API SoftDesk.\
+            Vous être connecté en tant que": f"{request.user}",
+
         "inscription": "  /signup/, POST",
         "connexion": "  /login/, POST",
         "déconnexion": "  /logout/, GET",
@@ -246,4 +238,4 @@ def api_overview(request):
         "modifier son commentaire": r"  /projects/{id}/issues, PUT",
         "supprimer son commentaire": r"  /projects/{id}/issues, DELETE",
     }
-    return Response(api_urls)
+    return Response(infos)
