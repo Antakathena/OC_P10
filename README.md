@@ -32,7 +32,7 @@ l'API doit pouvoir leur permettre de soulever les problèmes rencontrés et de l
 ## Fonctionnalités :
 
 ### Fonctions :
-L'API fourni des endpoints divers.____ **# ajouter le lien vers la collection POSTMAN**
+L'API fourni des endpoints divers.____ lien POTSMAN :*https://www.getpostman.com/collections/0d9e7d2b875a90de49f7*
 
 L'utilisateur doit être connecté, sauf pour s'inscrire et se connecter.
 
