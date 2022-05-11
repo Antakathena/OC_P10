@@ -14,13 +14,19 @@ Il est contruit selon l'architecture Django
     A noter : *simpleJWT* was used for token authentification
         documentation : https://django-rest-framework-simplejwt.readthedocs.io/en/latest/
 
-- l'**app users** contient contient les urls de l'app, les modèles, vues et serializers liés au CustomUser,
-- l'**app issues_manager** contient les urls de l'app,  les les modèles, vues et serializers pour :
+- l'**app users** contient les urls de l'app, les modèles, vues et serializers liés au CustomUser,
+- l'**app issues_manager** contient les urls de l'app,  les modèles, vues et serializers pour :
+
         - les projets(projects)
+        
         - les problèmes liés à ces projets(issues)
+        
         - les commentaires liés à ces problèmes (comments)
+        
         - la classe d'association pour les contributeurs (contributors).
+        
             Elle fait le lien entre les utilisateurs inscrits et les projects.
+
 - l'API utilise comme base de données *db.sqlite3*, la db fournie par défaut par DRF
 
 
@@ -32,7 +38,7 @@ l'API doit pouvoir leur permettre de soulever les problèmes rencontrés et de l
 ## Fonctionnalités :
 
 ### Fonctions :
-L'API fourni des endpoints divers.____ **# ajouter le lien vers la collection POSTMAN**
+L'API fourni des endpoints divers.____ lien POTSMAN : [![Run in Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/20538001-90b3a3f2-b652-4c2d-a007-02b60cf8f732?action=collection%2Ffork&collection-url=entityId%3D20538001-90b3a3f2-b652-4c2d-a007-02b60cf8f732%26entityType%3Dcollection%26workspaceId%3Dacf1da6b-0679-45fa-8b42-0af0578096fd)
 
 L'utilisateur doit être connecté, sauf pour s'inscrire et se connecter.
 
