@@ -4,7 +4,7 @@ from rest_framework.permissions import BasePermission
 SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
 
 
-class IsAdminAuthenticated(BasePermission):  # exemple du cours d'OC à suppr car = IsAdminUser
+class IsAdminAuthenticated(BasePermission):  # exemple du cours d'OC = IsAdminUser
     """autorisations de superuser/Admin"""
  
     def has_permission(self, request, view):
@@ -16,12 +16,9 @@ class IsCollaboratingPermission(BasePermission):
     """autorisation de contributeur au projet, sachant que is authenticated ne suffit pas :
     il faut savoir à quels projets l'utilisateur est associé (one to many)"""
     
-    def has_object_permission(self, request, view, obj):
+    def has_object_permission(self, request, obj, *args, **kwargs):
         """participe au projet en question"""
-        # project doit être obj ou pas?
-        # hériter de DjangoModelPermission (get et post ok)?
-
-        print(self.request)
+        # project doit être obj ou peut s'appeler project?
         print(self.obj)
         return bool(request.user == obj.contributor)
 

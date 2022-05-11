@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
 from rest_framework_nested import routers
+# documentation sur les nested routers :
 # https://pypi.org/project/drf-nested-routers/
 
 from . import views
@@ -9,14 +10,13 @@ from .views import(
     IssueViewSet,
     CommentViewSet,
     ContributorViewSet,
-    AdminProjectViewset,    
-    # ProjectIssuesView
+    AdminProjectViewset,
 )
 
 router = routers.SimpleRouter()
 router.register('projects', ProjectViewSet, basename='projects')
 
-# Les trois suivantes sont à retirer quand les nested routers ou les vues imbriquées marcheront:
+# Les trois suivantes peuvent être retirés si les nested routers suffisent:
 # router.register('issues', IssueViewSet, basename='issues') # a retirer à la fin
 # router.register('comments', CommentViewSet, basename='comments') # idem
 # router.register('contributors', ContributorViewSet, basename='contributors') # idem
@@ -33,13 +33,9 @@ issues_router.register('comments', CommentViewSet, basename='issue-comments')
 
 urlpatterns = [
     path('', views.api_overview, name="api-overview"),
-    # path('issues_manager/projects/', ProjectListView.as_view(), name="projects"),
     path('', include(router.urls)),
-
     path('', include(projects_router.urls)),
     path('', include(issues_router.urls)),
-
-    # path('projects/<project_id>/issues/', ProjectIssuesView.as_view())
 ]
 
 # Celui-ci c'est juste pour étudier le syst. et avoir un accès admin pour gérer les utilisateurs :

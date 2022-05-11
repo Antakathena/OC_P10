@@ -7,15 +7,18 @@ from users.models import CustomUser
 class ProjectSerializer(serializers.ModelSerializer):
     # class ProjectSerializer(serializers.HyperlinkedModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
+    project_id = serializers.ReadOnlyField(source='id')
     
     class Meta:
         model = Project
-        fields = [
-            'title',
-            'description',
-            'type',
-            'author',
-            ] 
+        fields = '__all__'
+        
+        # [
+        #     'title',
+        #     'description',
+        #     'type',
+        #     'author',
+        #     ] 
 
 
 class IssueSerializer(serializers.ModelSerializer):
@@ -71,6 +74,7 @@ class IssueSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     # class CommentSerializer(serializers.NestedHyperlinkedModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
+    comment_id = serializers.ReadOnlyField(source='id')
 
     # parent_lookup_kwargs = {
     #     'issue_id': 'issue__id',

@@ -7,7 +7,8 @@ from rest_framework.test import APITestCase
 from .models import Project
 
 class TestProject(APITestCase):
-    # Nous stockons l’url de l'endpoint dans un attribut de classe pour pouvoir l’utiliser plus facilement dans chacun de nos tests
+    # Nous stockons l’url de l'endpoint dans un attribut de classe
+    # pour pouvoir l’utiliser plus facilement dans chacun de nos tests
     url = reverse_lazy('/issues_manager/projects')
 
     def format_datetime(self, value):

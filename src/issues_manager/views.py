@@ -57,6 +57,7 @@ class ProjectViewSet(ModelViewSet):
         Instantiates and returns the list of permissions that this view requires.
         # pour get et post : contributeur du projet, pour delete et put : author
         """
+        # here is determined what action can be performed, according to authorisation:
         if self.action == 'create':
             permission_classes = [IsAuthenticated, ]
         elif self.action == 'list':
@@ -75,7 +76,6 @@ class ProjectViewSet(ModelViewSet):
             queryset = Project.objects.filter(id=project_id)
         else:
             queryset = Project.objects.filter(contributor__user = self.request.user)
-
         return queryset
 
     def perform_create(self, serializer):
@@ -97,14 +97,27 @@ class ProjectViewSet(ModelViewSet):
 
 
 class IssueViewSet(ModelViewSet):
-
+    """ la classe des problèmes concernant un projet"""
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated, ]
+
+    def get_permissions(self):
+        """ Which actions are allowed for user
+        Instantiates and returns the list of permissions that this view requires.
+        # pour get et post : contributeur du projet, pour delete et put : author
+        """
+        if self.action == 'create':
+            permission_classes = [IsAuthenticated, ]
+        elif self.action == 'list':
+            permission_classes = [IsAuthenticated, IsCollaboratingPermission, ]
+        else:
+            permission_classes = [IsAuthenticated, IsAuthorPermission]
+        return [permission() for permission in permission_classes]
 
     # exemple avec nested router : def get_queryset(self):
     # return Issue.objects.filter(project = self.kwargs['project_pk'])
 
-    @action(methods=['get', 'post'], detail=True)
+    # @action(methods=['get', 'post'], detail=True)
     # , url_path='project/(?<project_pk>[^/.]+)')
     def get_queryset(self, *arg, **kwargs):
         issue_id = self.request.GET.get(id)
@@ -135,8 +148,22 @@ class IssueViewSet(ModelViewSet):
     
 
 class CommentViewSet(ModelViewSet):
+    """la classe des commentaires"""
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated, ]
+
+    def get_permissions(self):
+        """ Which actions are allowed for user
+        Instantiates and returns the list of permissions that this view requires.
+        # pour get et post : contributeur du projet, pour delete et put : author
+        """
+        if self.action == 'create':
+            permission_classes = [IsAuthenticated, ]
+        elif self.action == 'list':
+            permission_classes = [IsAuthenticated, IsCollaboratingPermission, ]
+        else:
+            permission_classes = [IsAuthenticated, IsAuthorPermission]
+        return [permission() for permission in permission_classes]
 
     def get_queryset(self):
         comment_id = self.request.GET.get(id)
@@ -172,26 +199,35 @@ class CommentViewSet(ModelViewSet):
 
 
 class ContributorViewSet(ModelViewSet):
+    """une classe d'association entre CustomUser et Project"""
 
     serializer_class = ContributorsSerializer
     permission_classes = [IsAuthenticated, ]
 
     def get_queryset(self):
+        user = self.request.user
+        print(user)
         contributor_id = self.request.GET.get(id)
+
         if contributor_id is not None:
-            queryset = Contributor.objects.filter(contributor_id=contributor_id)
-            # nb 28/04/2022 remplacé queryset.filter par Contributor.objects.filter
-            contributor = self.queryset.get(contributor_id=contributor_id)
-            # project_id = self.kwargs['project_pk'])
+            queryset = Contributor.objects.filter(
+                contributor_id=contributor_id)
+
+            contributor = self.queryset.get(
+                contributor_id=contributor_id,
+                project_id=self.kwargs['project_pk']  # a retenir
+                )
             return contributor
         else:
-            queryset = Contributor.objects.all()
+            queryset = Contributor.objects.filter(project_id=self.kwargs['project_pk'])
             return queryset
+
 
 
 class AdminProjectViewset(ModelViewSet):
     """Vues reservée aux administrateurs
-    Elle permet toutes les actions du CRUD sur les projets"""
+    Elle permet toutes les actions du CRUD sur les projets
+    """
     serializer_class = ProjectSerializer
     queryset = projects = Project.objects.all()  
     permission_classes = (IsAuthenticated, IsAdminUser)
@@ -199,15 +235,10 @@ class AdminProjectViewset(ModelViewSet):
 
 @api_view(['GET'])
 def api_overview(request):
+    """ aperçu des ENDPOINTS demandés
+    Entrainement sur une vue simple.
+    Les r avant les guillemets servent à indiquer que tout est à prendre comme string
     """
-    Une vue simple pour avoir un aperçu des ENDPOINTS demandés
-    les r avant les guillemets servent à indiquer que tout est à prendre comme string
-    """
-    
-    # if request.user.is_authenticated:
-    #     utilisateur = {  }
-    # else :
-    #     utilisateur = { "Vous n'êtes pas connecté" :"anonyme" ,}
 
     infos = {
         "Bienvenue dans l'API SoftDesk.\
