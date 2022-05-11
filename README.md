@@ -14,13 +14,19 @@ Il est contruit selon l'architecture Django
     A noter : *simpleJWT* was used for token authentification
         documentation : https://django-rest-framework-simplejwt.readthedocs.io/en/latest/
 
-- l'**app users** contient contient les urls de l'app, les modèles, vues et serializers liés au CustomUser,
-- l'**app issues_manager** contient les urls de l'app,  les les modèles, vues et serializers pour :
+- l'**app users** contient les urls de l'app, les modèles, vues et serializers liés au CustomUser,
+- l'**app issues_manager** contient les urls de l'app,  les modèles, vues et serializers pour :
+
         - les projets(projects)
+        
         - les problèmes liés à ces projets(issues)
+        
         - les commentaires liés à ces problèmes (comments)
+        
         - la classe d'association pour les contributeurs (contributors).
+        
             Elle fait le lien entre les utilisateurs inscrits et les projects.
+
 - l'API utilise comme base de données *db.sqlite3*, la db fournie par défaut par DRF
 
 
