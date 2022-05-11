@@ -114,18 +114,12 @@ class IssueViewSet(ModelViewSet):
             permission_classes = [IsAuthenticated, IsAuthorPermission]
         return [permission() for permission in permission_classes]
 
-    # exemple avec nested router : def get_queryset(self):
-    # return Issue.objects.filter(project = self.kwargs['project_pk'])
-
-    # @action(methods=['get', 'post'], detail=True)
-    # , url_path='project/(?<project_pk>[^/.]+)')
     def get_queryset(self, *arg, **kwargs):
         issue_id = self.request.GET.get(id)
         queryset = Issue.objects.filter(project__contributor__user = self.request.user)
         
         if issue_id is not None:
             queryset = queryset.filter(id=issue_id)
-            # nb 28/04/2022 remplacé queryset.filter par Issue.objects.filter
             issue = queryset.get(issue_id=issue_id, project=self.kwargs['project_pk'])
             return issue
         else:
@@ -169,7 +163,6 @@ class CommentViewSet(ModelViewSet):
         comment_id = self.request.GET.get(id)
         if comment_id is not None:
             queryset = Comment.objects.filter(comment_id=comment_id)
-            # nb 28/04/2022 remplacé queryset.filter par Comment.objects.filter
             comment = self.queryset.get(
                 comment_id=comment_id,
                 issue_id=self.kwargs['issue_id'],

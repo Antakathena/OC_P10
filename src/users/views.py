@@ -47,7 +47,8 @@ class UserView(APIView):
 class RegisterUserView(APIView):
     """ create a new user """
     permission_classes = (AllowAny,)
-    serializer_class= RegisterUserSerializer  # NB : si on ne met pas ça là on a pas de formulaire adequate à remplir
+    serializer_class= RegisterUserSerializer 
+    # NB : si on ne met pas ça là on a pas de formulaire adequate à remplir
 
     def post(self, request, *args, **kwargs):
         user = request.data
